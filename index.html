@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#141414">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>EXIF Watermark</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Desktop titlebar / Mobile header -->
+  <div class="titlebar">
+    <span class="titlebar-title">EXIF Watermark</span>
+    <!-- Mobile: add button in header -->
+    <div class="mobile-header-actions">
+      <button class="mobile-add-btn" id="mobileAddBtn">＋ 写真を追加</button>
+      <input type="file" id="mobileFileInput" accept="image/jpeg,image/tiff,image/heic,image/heif,image/png,image/webp" multiple style="display:none">
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- Sidebar: file list (desktop) -->
+    <div class="sidebar">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">⬆</div>
+        <div class="drop-text">写真をドロップ</div>
+        <div class="drop-sub">または</div>
+        <button class="btn-open" id="openBtn">ファイルを選択</button>
+        <input type="file" id="fileInput" accept="image/jpeg,image/tiff,image/heic,image/heif,image/png,image/webp" multiple>
+      </div>
+
+      <div class="file-list-header" id="fileListHeader" style="display:none">
+        <span id="fileCount">0枚</span>
+        <div class="header-actions">
+          <button class="btn-text" id="selectAllBtn">全選択</button>
+          <button class="btn-text" id="deselectAllBtn" style="display:none">全解除</button>
+        </div>
+      </div>
+      <div class="file-list" id="fileList"></div>
+
+      <div class="sidebar-footer">
+        <div class="footer-row">
+          <button class="btn-secondary" id="clearBtn" disabled>クリア</button>
+          <button class="btn-primary wide" id="batchExportBtn" disabled>保存 (0枚選択)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview panel -->
+    <div class="preview-panel">
+
+      <!-- Mobile: pick area (shown when no files) -->
+      <div class="mobile-pick-area" id="mobilePickArea">
+        <div class="pick-area-icon">📷</div>
+        <div class="pick-area-text">写真を選択してください</div>
+        <button class="pick-btn-large primary" id="mobileCameraBtn">
+          <span class="pick-icon">🖼️</span> カメラロールから選択
+        </button>
+        <button class="pick-btn-large secondary" onclick="document.getElementById('mobileCameraInput').click()">
+          <span class="pick-icon">📸</span> カメラで撮影
+        </button>
+        <input type="file" id="mobileCameraInput" accept="image/*" capture="environment" style="display:none">
+      </div>
+
+      <div class="preview-empty" id="previewEmpty">
+        <div class="preview-empty-icon">🖼</div>
+        <div class="preview-empty-text">写真を読み込んでください</div>
+        <div class="preview-empty-sub">JPG / TIFF / HEIC / PNG 対応</div>
+      </div>
+
+      <div class="preview-content" id="previewContent" style="display:none">
+        <div class="preview-topbar">
+          <div class="nav-controls">
+            <button class="nav-btn" id="prevBtn">&#8249;</button>
+            <span class="nav-counter" id="navCounter">1 / 1</span>
+            <button class="nav-btn" id="nextBtn">&#8250;</button>
+          </div>
+          <div class="bar-toggle">
+            <button class="bar-btn active" id="barWhiteBtn">白帯</button>
+            <button class="bar-btn" id="barBlackBtn">黒帯</button>
+          </div>
+          <select class="template-select" id="templateSelect">
+            <option value="0">標準</option>
+            <option value="1">左寄せ</option>
+            <option value="2">ミニマル</option>
+            <option value="3">フォトカード</option>
+            <option value="4">右帯</option>
+            <option value="5">上帯</option>
+          </select>
+          <!-- Mobile: params toggle -->
+          <button class="params-toggle-btn" id="paramsToggleBtn">⚙ 設定</button>
+          <div class="preview-actions">
+            <button class="btn-export" id="exportBtn">保存</button>
+          </div>
+        </div>
+
+        <!-- Params bar (desktop: always visible / mobile: collapsible) -->
+        <div class="params-bar" id="paramsBar">
+          <div class="param-group">
+            <span class="param-label">書体</span>
+            <select class="param-font-select" id="fontSelect">
+              <optgroup label="Sans-serif">
+                <option value="0">San Francisco</option>
+                <option value="1">Helvetica Neue</option>
+                <option value="2">Futura</option>
+                <option value="3">Avenir Next</option>
+                <option value="4">Optima</option>
+                <option value="5">Gill Sans</option>
+              </optgroup>
+              <optgroup label="Serif">
+                <option value="6">Didot</option>
+                <option value="7">Bodoni 72</option>
+                <option value="8">Baskerville</option>
+                <option value="9">Big Caslon</option>
+                <option value="10">Hoefler Text</option>
+                <option value="11">Palatino</option>
+              </optgroup>
+              <optgroup label="Mono">
+                <option value="12">Courier New</option>
+                <option value="13">American Typewriter</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="param-sep"></div>
+          <div class="param-group">
+            <span class="param-label">フォントサイズ</span>
+            <input type="range" class="param-slider" id="fontScaleSlider" min="50" max="200" value="100" step="5">
+            <span class="param-value" id="fontScaleValue">100%</span>
+          </div>
+          <div class="param-sep"></div>
+          <div class="param-group">
+            <span class="param-label">帯の太さ</span>
+            <input type="range" class="param-slider" id="barScaleSlider" min="50" max="250" value="100" step="5">
+            <span class="param-value" id="barScaleValue">100%</span>
+          </div>
+        </div>
+
+        <div class="canvas-scroll">
+          <div class="canvas-wrapper">
+            <canvas id="previewCanvas"></canvas>
+            <div class="canvas-loading" id="canvasLoading">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="exif-strip" id="exifStrip"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>
