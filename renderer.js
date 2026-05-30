@@ -502,7 +502,10 @@ function drawPreviewScaled(fullCanvas, scrollEl) {
   const scale = Math.min(1, maxW / fullCanvas.width, maxH / fullCanvas.height);
   previewCanvas.width  = Math.round(fullCanvas.width * scale);
   previewCanvas.height = Math.round(fullCanvas.height * scale);
-  previewCanvas.getContext('2d').drawImage(fullCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
+  const ctx = previewCanvas.getContext('2d');
+  ctx.imageSmoothingEnabled  = true;
+  ctx.imageSmoothingQuality  = 'high';
+  ctx.drawImage(fullCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
 }
 
 // ── Download (browser) ────────────────────────────────────────────────────────
