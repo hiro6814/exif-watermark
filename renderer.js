@@ -319,7 +319,7 @@ function _drawRightBlock(ctx,exif,isDark,col,barH,imgW,pad,barCY,lineGap,fontSca
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 function drawPreviewScaled(fullCanvas, scrollEl) {
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.max(window.devicePixelRatio || 1, 3);
   const maxW = scrollEl.clientWidth  - 24;
   const maxH = scrollEl.clientHeight - 24;
   const scale = Math.min(1, maxW / fullCanvas.width, maxH / fullCanvas.height);
