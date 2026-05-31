@@ -11,19 +11,48 @@
 </head>
 <body>
 
-  <!-- Desktop titlebar / Mobile header -->
+  <!-- ── Titlebar ── -->
   <div class="titlebar">
+    <!-- Mobile: hamburger (left) -->
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="画像一覧">
+      <span></span><span></span><span></span>
+    </button>
+
     <span class="titlebar-title">EXIF Watermark</span>
-    <!-- Mobile: add button in header -->
-    <div class="mobile-header-actions">
-      <button class="mobile-add-btn" id="mobileAddBtn">＋ 写真を追加</button>
-      <input type="file" id="mobileFileInput" accept="image/jpeg,image/tiff,image/heic,image/heif,image/png,image/webp" multiple style="display:none">
-    </div>
+
+    <!-- spacer to keep title centered on mobile -->
+    <div class="titlebar-spacer"></div>
   </div>
 
+  <!-- ── Mobile drawer overlay ── -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+
+  <!-- ── Mobile drawer ── -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-header">
+      <span class="drawer-title">写真一覧</span>
+      <button class="drawer-close-btn" id="drawerCloseBtn">✕</button>
+    </div>
+
+    <div class="drawer-add-actions">
+      <button class="drawer-add-btn primary" id="drawerLibraryBtn">
+        🖼️ 写真を追加
+      </button>
+      <button class="drawer-add-btn secondary" id="drawerCameraBtn">
+        📸 撮影して追加
+      </button>
+      <!-- hidden file inputs for drawer -->
+      <input type="file" id="drawerLibraryInput" accept="image/*" multiple style="display:none">
+      <input type="file" id="drawerCameraInput" accept="image/*" capture="environment" style="display:none">
+    </div>
+
+    <div class="drawer-file-list" id="drawerFileList"></div>
+  </div>
+
+  <!-- ── Main layout ── -->
   <div class="app">
 
-    <!-- Sidebar: file list (desktop) -->
+    <!-- Desktop sidebar -->
     <div class="sidebar">
       <div class="drop-zone" id="dropZone">
         <div class="drop-icon">⬆</div>
@@ -53,19 +82,22 @@
     <!-- Preview panel -->
     <div class="preview-panel">
 
-      <!-- Mobile: pick area (shown when no files) -->
+      <!-- Mobile: pick area (no files loaded) -->
       <div class="mobile-pick-area" id="mobilePickArea">
         <div class="pick-area-icon">📷</div>
         <div class="pick-area-text">写真を選択してください</div>
-        <button class="pick-btn-large primary" id="mobileCameraBtn">
+        <button class="pick-btn-large primary" id="pickLibraryBtn">
           <span class="pick-icon">🖼️</span> カメラロールから選択
         </button>
-        <button class="pick-btn-large secondary" onclick="document.getElementById('mobileCameraInput').click()">
+        <button class="pick-btn-large secondary" id="pickCameraBtn">
           <span class="pick-icon">📸</span> カメラで撮影
         </button>
-        <input type="file" id="mobileCameraInput" accept="image/*" capture="environment" style="display:none">
+        <!-- file inputs for initial pick -->
+        <input type="file" id="pickLibraryInput" accept="image/*" multiple style="display:none">
+        <input type="file" id="pickCameraInput" accept="image/*" capture="environment" style="display:none">
       </div>
 
+      <!-- Desktop empty state -->
       <div class="preview-empty" id="previewEmpty">
         <div class="preview-empty-icon">🖼</div>
         <div class="preview-empty-text">写真を読み込んでください</div>
@@ -91,14 +123,12 @@
             <option value="4">右帯</option>
             <option value="5">上帯</option>
           </select>
-          <!-- Mobile: params toggle -->
           <button class="params-toggle-btn" id="paramsToggleBtn">⚙ 設定</button>
           <div class="preview-actions">
             <button class="btn-export" id="exportBtn">保存</button>
           </div>
         </div>
 
-        <!-- Params bar (desktop: always visible / mobile: collapsible) -->
         <div class="params-bar" id="paramsBar">
           <div class="param-group">
             <span class="param-label">書体</span>
