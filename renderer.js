@@ -94,9 +94,13 @@ function formatDateTime(dt) {
            date: `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}` };
 }
 
-function buildSettingsLine(exif) {
-  return [formatFocal(exif?.FocalLength), formatFNumber(exif?.FNumber),
-          formatShutter(exif?.ExposureTime), formatISO(exif?.ISO)].filter(Boolean).join('  ') || null;
+function buildSettingsLine(exif, ef) {
+  return [
+    ef?.focal !== false ? formatFocal(exif?.FocalLength)      : null,
+    ef?.fnum  !== false ? formatFNumber(exif?.FNumber)        : null,
+    ef?.ss    !== false ? formatShutter(exif?.ExposureTime)   : null,
+    ef?.iso   !== false ? formatISO(exif?.ISO)                : null,
+  ].filter(Boolean).join('  ') || null;
 }
 
 // ── Drawing helpers ───────────────────────────────────────────────────────────
@@ -128,12 +132,14 @@ const barColors = isDark => ({
 
 // ── Templates ─────────────────────────────────────────────────────────────────
 async function renderWatermark(imgElement, exif, barStyle='white', template=0, fontScale=1.0, barScale=1.0) {
-  const isDark=barStyle==='black', brand=detectBrand(exif?.Make), logoImg=await getLogoImage(brand,isDark);
-  const p={imgElement,exif,barStyle,isDark,brand,logoImg,imgW:imgElement.naturalWidth,imgH:imgElement.naturalHeight,fontScale,barScale};
+  const ef=state.exifFields;
+  const isDark=barStyle==='black', brand=detectBrand(exif?.Make);
+  const logoImg=ef.logo ? await getLogoImage(brand,isDark) : null;
+  const p={imgElement,exif,barStyle,isDark,brand,logoImg,imgW:imgElement.naturalWidth,imgH:imgElement.naturalHeight,fontScale,barScale,ef};
   return [renderT0,renderT1,renderT2,renderT3,renderT4,renderT5][template]?.(p) ?? renderT0(p);
 }
 
-function renderT0({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1}) {
+function renderT0({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1,ef}) {
   const baseBarH=Math.max(60,Math.round(Math.max(imgW,imgH)*0.072));
   const barH=Math.max(60,Math.round(baseBarH*barScale));
   const canvas=document.createElement('canvas'); canvas.width=imgW; canvas.height=imgH+barH;
@@ -146,15 +152,14 @@ function renderT0({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   const ms=Math.round(baseBarH*0.27*fontScale), ls=Math.round(baseBarH*0.155*fontScale);
   const topY=barCY-(ms+lineGap+ls)/2+ms;
   ctx.save(); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.fillStyle=col.primary; ctx.font=`bold ${ms}px ${currentFont}`;
-  ctx.fillText(formatModel(exif?.Make,exif?.Model),pad,topY);
-  if(exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),pad,topY+lineGap+ls);}
+  if(ef?.camera!==false){ctx.fillStyle=col.primary;ctx.font=`bold ${ms}px ${currentFont}`;ctx.fillText(formatModel(exif?.Make,exif?.Model),pad,topY);}
+  if(ef?.lens!==false&&exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),pad,(ef?.camera!==false?topY:topY-ms)+lineGap+ls);}
   ctx.restore();
-  _drawRightBlock(ctx,exif,isDark,col,baseBarH,imgW,pad,barCY,lineGap,fontScale);
+  _drawRightBlock(ctx,exif,isDark,col,baseBarH,imgW,pad,barCY,lineGap,fontScale,ef);
   return canvas;
 }
 
-function renderT1({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1}) {
+function renderT1({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1,ef}) {
   const baseBarH=Math.max(60,Math.round(Math.max(imgW,imgH)*0.072));
   const barH=Math.max(60,Math.round(baseBarH*barScale));
   const canvas=document.createElement('canvas'); canvas.width=imgW; canvas.height=imgH+barH;
@@ -171,15 +176,14 @@ function renderT1({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   const ms=Math.round(baseBarH*0.27*fontScale), ls=Math.round(baseBarH*0.155*fontScale);
   const topY=barCY-(ms+lineGap+ls)/2+ms;
   ctx.save(); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.fillStyle=col.primary; ctx.font=`bold ${ms}px ${currentFont}`;
-  ctx.fillText(formatModel(exif?.Make,exif?.Model),textX,topY);
-  if(exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),textX,topY+lineGap+ls);}
+  if(ef?.camera!==false){ctx.fillStyle=col.primary;ctx.font=`bold ${ms}px ${currentFont}`;ctx.fillText(formatModel(exif?.Make,exif?.Model),textX,topY);}
+  if(ef?.lens!==false&&exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),textX,(ef?.camera!==false?topY:topY-ms)+lineGap+ls);}
   ctx.restore();
-  _drawRightBlock(ctx,exif,isDark,col,baseBarH,imgW,barH*0.18,barCY,lineGap,fontScale);
+  _drawRightBlock(ctx,exif,isDark,col,baseBarH,imgW,barH*0.18,barCY,lineGap,fontScale,ef);
   return canvas;
 }
 
-function renderT2({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1}) {
+function renderT2({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1,ef}) {
   const baseBarH=Math.max(36,Math.round(Math.max(imgW,imgH)*0.042));
   const barH=Math.max(36,Math.round(baseBarH*barScale));
   const canvas=document.createElement('canvas'); canvas.width=imgW; canvas.height=imgH+barH;
@@ -192,8 +196,12 @@ function renderT2({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   const logoCX=pad+barH*0.28, logoSize=barH*0.56;
   drawLogoOnCanvas(ctx,logoImg,brand,isDark,logoCX,barCY,logoSize,logoSize);
   // ミニマル: カメラ名・レンズ・日付のみ（焦点距離/F値/SS/ISOは省略）
-  const dt=formatDateTime(exif?.DateTimeOriginal||exif?.DateTime);
-  const parts=[formatModel(exif?.Make,exif?.Model),exif?.LensModel?.trim(),dt?dt.date:null].filter(Boolean);
+  const dt=ef?.date!==false?formatDateTime(exif?.DateTimeOriginal||exif?.DateTime):null;
+  const parts=[
+    ef?.camera!==false?formatModel(exif?.Make,exif?.Model):null,
+    ef?.lens!==false?exif?.LensModel?.trim():null,
+    dt?dt.date:null,
+  ].filter(Boolean);
   const fontSize=Math.round(baseBarH*0.36*fontScale);
   const logoRightEdge=logoCX+logoSize/2+pad*0.5;
   const textCenterX=logoRightEdge+(imgW-pad-logoRightEdge)/2;
@@ -205,7 +213,7 @@ function renderT2({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   return canvas;
 }
 
-function renderT3({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1}) {
+function renderT3({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1,ef}) {
   const baseBarH=Math.max(120,Math.round(Math.max(imgW,imgH)*0.145));
   const barH=Math.max(120,Math.round(baseBarH*barScale));
   const canvas=document.createElement('canvas'); canvas.width=imgW; canvas.height=imgH+barH;
@@ -222,11 +230,10 @@ function renderT3({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   const ss=Math.round(baseBarH*0.155*fontScale), ts=Math.round(baseBarH*0.095*fontScale);
   const modelTopY=lowerCY-(ms+lineGap+ls)/2+ms;
   ctx.save(); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.fillStyle=col.primary; ctx.font=`bold ${ms}px ${currentFont}`;
-  ctx.fillText(formatModel(exif?.Make,exif?.Model),pad,modelTopY);
-  if(exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),pad,modelTopY+lineGap+ls);}
+  if(ef?.camera!==false){ctx.fillStyle=col.primary;ctx.font=`bold ${ms}px ${currentFont}`;ctx.fillText(formatModel(exif?.Make,exif?.Model),pad,modelTopY);}
+  if(ef?.lens!==false&&exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),pad,(ef?.camera!==false?modelTopY:modelTopY-ms)+lineGap+ls);}
   ctx.restore();
-  const settingsText=buildSettingsLine(exif), dt=formatDateTime(exif?.DateTimeOriginal||exif?.DateTime);
+  const settingsText=buildSettingsLine(exif,ef), dt=ef?.date!==false?formatDateTime(exif?.DateTimeOriginal||exif?.DateTime):null;
   const rightH=(settingsText&&dt)?ss+lineGap+ts:ss;
   const rightTopY=lowerCY-rightH/2+ss;
   ctx.save(); ctx.textAlign='right'; ctx.textBaseline='alphabetic';
@@ -236,7 +243,7 @@ function renderT3({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   return canvas;
 }
 
-function renderT4({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1}) {
+function renderT4({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1,ef}) {
   const baseBarW=Math.max(100,Math.round(imgW*0.135));
   const barW=Math.max(100,Math.round(baseBarW*barScale));
   const canvas=document.createElement('canvas'); canvas.width=imgW+barW; canvas.height=imgH;
@@ -246,16 +253,16 @@ function renderT4({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   ctx.fillStyle=col.border; ctx.fillRect(imgW,0,Math.max(1,Math.round(barW*0.007)),imgH);
   const cx=imgW+barW/2, pad=barW*0.11;
   drawLogoOnCanvas(ctx,logoImg,brand,isDark,cx,pad+barW*0.285/2,barW*0.80,barW*0.285);
-  const focal=exif?.FocalLength?`${Math.round(exif.FocalLength)}mm`:null;
-  const fnum=exif?.FNumber?`f${Number(exif.FNumber).toFixed(1).replace('.0','')}`:null;
-  const ss=exif?.ExposureTime?(exif.ExposureTime>=1?`SS${exif.ExposureTime}s`:`SS1/${Math.round(1/exif.ExposureTime)}`):null;
-  const iso=exif?.ISO?`ISO${exif.ISO}`:null;
-  const dt=formatDateTime(exif?.DateTimeOriginal||exif?.DateTime);
+  const focal=ef?.focal!==false&&exif?.FocalLength?`${Math.round(exif.FocalLength)}mm`:null;
+  const fnum=ef?.fnum!==false&&exif?.FNumber?`f${Number(exif.FNumber).toFixed(1).replace('.0','')}`:null;
+  const ss=ef?.ss!==false&&exif?.ExposureTime?(exif.ExposureTime>=1?`SS${exif.ExposureTime}s`:`SS1/${Math.round(1/exif.ExposureTime)}`):null;
+  const iso=ef?.iso!==false&&exif?.ISO?`ISO${exif.ISO}`:null;
+  const dt=ef?.date!==false?formatDateTime(exif?.DateTimeOriginal||exif?.DateTime):null;
   const modelSz=baseBarW*0.148*fontScale, lensSz=baseBarW*0.105*fontScale;
   const valSz=baseBarW*0.155*fontScale, dateSz=baseBarW*0.108*fontScale;
   const mainItems=[
-    {text:formatModel(exif?.Make,exif?.Model),sz:modelSz,bold:true,color:col.primary},
-    exif?.LensModel?{text:exif.LensModel.trim(),sz:lensSz,bold:false,color:col.secondary}:null,
+    ef?.camera!==false?{text:formatModel(exif?.Make,exif?.Model),sz:modelSz,bold:true,color:col.primary}:null,
+    ef?.lens!==false&&exif?.LensModel?{text:exif.LensModel.trim(),sz:lensSz,bold:false,color:col.secondary}:null,
     focal?{text:focal,sz:valSz,bold:false,color:col.primary}:null,
     fnum?{text:fnum,sz:valSz,bold:false,color:col.primary}:null,
     ss?{text:ss,sz:valSz,bold:false,color:col.primary}:null,
@@ -285,7 +292,7 @@ function renderT4({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   return canvas;
 }
 
-function renderT5({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1}) {
+function renderT5({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,barScale=1,ef}) {
   const baseBarH=Math.max(60,Math.round(Math.max(imgW,imgH)*0.072));
   const barH=Math.max(60,Math.round(baseBarH*barScale));
   const canvas=document.createElement('canvas'); canvas.width=imgW; canvas.height=imgH+barH;
@@ -298,16 +305,15 @@ function renderT5({imgElement,exif,isDark,brand,logoImg,imgW,imgH,fontScale=1,ba
   const ms=Math.round(baseBarH*0.27*fontScale), ls=Math.round(baseBarH*0.155*fontScale);
   const topY=barCY-(ms+lineGap+ls)/2+ms;
   ctx.save(); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.fillStyle=col.primary; ctx.font=`bold ${ms}px ${currentFont}`;
-  ctx.fillText(formatModel(exif?.Make,exif?.Model),pad,topY);
-  if(exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),pad,topY+lineGap+ls);}
+  if(ef?.camera!==false){ctx.fillStyle=col.primary;ctx.font=`bold ${ms}px ${currentFont}`;ctx.fillText(formatModel(exif?.Make,exif?.Model),pad,topY);}
+  if(ef?.lens!==false&&exif?.LensModel){ctx.fillStyle=col.secondary;ctx.font=`${ls}px ${currentFont}`;ctx.fillText(exif.LensModel.trim(),pad,(ef?.camera!==false?topY:topY-ms)+lineGap+ls);}
   ctx.restore();
-  _drawRightBlock(ctx,exif,isDark,col,baseBarH,imgW,pad,barCY,lineGap,fontScale);
+  _drawRightBlock(ctx,exif,isDark,col,baseBarH,imgW,pad,barCY,lineGap,fontScale,ef);
   return canvas;
 }
 
-function _drawRightBlock(ctx,exif,isDark,col,barH,imgW,pad,barCY,lineGap,fontScale=1) {
-  const settingsText=buildSettingsLine(exif), dt=formatDateTime(exif?.DateTimeOriginal||exif?.DateTime);
+function _drawRightBlock(ctx,exif,isDark,col,barH,imgW,pad,barCY,lineGap,fontScale=1,ef=null) {
+  const settingsText=buildSettingsLine(exif,ef), dt=ef?.date!==false?formatDateTime(exif?.DateTimeOriginal||exif?.DateTime):null;
   const ss=Math.round(barH*0.25*fontScale), ts=Math.round(barH*0.152*fontScale);
   const rightTotalH=(settingsText&&dt)?ss+lineGap+ts:ss;
   const rightTopY=barCY-rightTotalH/2+ss;
@@ -351,7 +357,8 @@ function downloadCanvas(canvas, filename) {
 const buildSaveName = file => `${file.name.replace(/\.[^.]+$/,'')}_watermark.jpg`;
 
 // ── App state ─────────────────────────────────────────────────────────────────
-const state = { items:[], current:0, selected:new Set(), barStyle:'white', template:0, fontScale:1, barScale:1, fontFamily:0 };
+const state = { items:[], current:0, selected:new Set(), barStyle:'white', template:0, fontScale:1, barScale:1, fontFamily:0,
+  exifFields:{ camera:true, lens:true, focal:true, fnum:true, ss:true, iso:true, date:true, logo:true } };
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 // Desktop sidebar
@@ -730,6 +737,16 @@ fontSelect.addEventListener('change',async()=>{state.fontFamily=Number(fontSelec
 paramsToggleBtn?.addEventListener('click',()=>{
   const open=paramsBar.classList.toggle('open');
   paramsToggleBtn.textContent=open?'⚙ 閉じる':'⚙ 設定';
+});
+
+// EXIF field toggles (mobile-only checkboxes)
+[['Camera','camera'],['Lens','lens'],['Focal','focal'],['Fnum','fnum'],['SS','ss'],['ISO','iso'],['Date','date'],['Logo','logo']].forEach(([id,key])=>{
+  const el=document.getElementById('toggle'+id);
+  if(!el)return;
+  el.addEventListener('change',async()=>{
+    state.exifFields[key]=el.checked;
+    await reRenderAll();
+  });
 });
 
 // Export

@@ -167,6 +167,20 @@
             <input type="range" class="param-slider" id="barScaleSlider" min="50" max="250" value="100" step="5">
             <span class="param-value" id="barScaleValue">100%</span>
           </div>
+          <!-- Mobile-only: EXIF項目選択 -->
+          <div class="exif-toggles">
+            <span class="exif-toggle-label">表示する情報</span>
+            <div class="exif-toggle-grid">
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleCamera" checked><span>カメラ</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleLens" checked><span>レンズ</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleFocal" checked><span>焦点距離</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleFnum" checked><span>絞り</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleSS" checked><span>SS</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleISO" checked><span>ISO</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleDate" checked><span>日付</span></label>
+              <label class="exif-toggle-item"><input type="checkbox" id="toggleLogo" checked><span>ロゴ</span></label>
+            </div>
+          </div>
         </div>
 
         <div class="canvas-scroll">
