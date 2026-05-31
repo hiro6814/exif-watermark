@@ -699,16 +699,25 @@ body {
   /* Topbar: 2行レイアウト */
   .preview-topbar {
     height: auto;
-    padding: 6px 10px;
-    gap: 6px;
+    padding: 5px 10px;
+    gap: 5px;
     flex-wrap: wrap;
     overflow-x: visible;
   }
-  .nav-controls { order: 1; }
-  .bar-toggle   { order: 2; margin-left: auto; }
-  .template-select { order: 3; flex-basis: 100%; margin: 0; }
-  .params-toggle-btn { order: 4; display: flex; flex: 1; }
-  .preview-actions { order: 5; }
+  /* 行1: ← 1/1 → | 白帯/黒帯 */
+  .nav-controls  { order: 1; }
+  .bar-toggle    { order: 2; margin-left: auto; }
+  /* 行1→行2 の強制改行 (order:3 のゼロ高さ要素) */
+  .preview-topbar::after {
+    content: '';
+    flex-basis: 100%;
+    order: 3;
+    height: 0;
+  }
+  /* 行2: テンプレート(伸長) | ⚙設定 | 保存 */
+  .template-select   { order: 4; flex: 1; min-width: 0; margin: 0; }
+  .params-toggle-btn { order: 5; display: flex; flex-shrink: 0; }
+  .preview-actions   { order: 6; flex-shrink: 0; }
 
   /* Settings panel: inline flow on mobile (no absolute) */
   .params-bar {
@@ -724,7 +733,7 @@ body {
   .params-bar.open { display: flex; }
   .param-slider { width: 120px; }
 
-  .canvas-scroll { padding: 12px; }
+  .canvas-scroll { padding: 12px; align-items: flex-start; }
   .exif-strip {
     min-height: 48px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
