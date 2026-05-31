@@ -696,21 +696,30 @@ body {
   /* Desktop empty state: hide */
   .preview-empty { display: none !important; }
 
-  /* Topbar */
-  .preview-topbar { height: 48px; padding: 0 10px; gap: 6px; }
+  /* Topbar: 2行レイアウト */
+  .preview-topbar {
+    height: auto;
+    padding: 6px 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+  .nav-controls { order: 1; }
+  .bar-toggle   { order: 2; margin-left: auto; }
+  .template-select { order: 3; flex-basis: 100%; margin: 0; }
+  .params-toggle-btn { order: 4; display: flex; flex: 1; }
+  .preview-actions { order: 5; }
 
-  /* Settings toggle */
-  .params-toggle-btn { display: flex; }
+  /* Settings panel: inline flow on mobile (no absolute) */
   .params-bar {
     display: none;
-    position: absolute;
-    top: 48px; left: 0; right: 0;
-    z-index: 20;
+    position: static;
     height: auto;
     flex-wrap: wrap;
-    gap: 12px;
-    padding: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    gap: 10px;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
   }
   .params-bar.open { display: flex; }
   .param-slider { width: 120px; }
