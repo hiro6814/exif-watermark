@@ -319,14 +319,25 @@ function _drawRightBlock(ctx,exif,isDark,col,barH,imgW,pad,barCY,lineGap,fontSca
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 function drawPreviewScaled(fullCanvas, scrollEl) {
-  const maxW=scrollEl.clientWidth-40, maxH=scrollEl.clientHeight-40;
-  const scale=Math.min(1,maxW/fullCanvas.width,maxH/fullCanvas.height);
-  previewCanvas.width =Math.round(fullCanvas.width*scale);
-  previewCanvas.height=Math.round(fullCanvas.height*scale);
-  const ctx=previewCanvas.getContext('2d');
-  ctx.imageSmoothingEnabled=true;
-  ctx.imageSmoothingQuality='high';
-  ctx.drawImage(fullCanvas,0,0,previewCanvas.width,previewCanvas.height);
+  const dpr = window.devicePixelRatio || 1;
+  const maxW = scrollEl.clientWidth  - 24;
+  const maxH = scrollEl.clientHeight - 24;
+  const scale = Math.min(1, maxW / fullCanvas.width, maxH / fullCanvas.height);
+
+  // CSSサイズ（論理ピクセル）
+  const cssW = Math.round(fullCanvas.width  * scale);
+  const cssH = Math.round(fullCanvas.height * scale);
+
+  // 物理ピクセル（Retina対応）
+  previewCanvas.width  = cssW * dpr;
+  previewCanvas.height = cssH * dpr;
+  previewCanvas.style.width  = cssW + 'px';
+  previewCanvas.style.height = cssH + 'px';
+
+  const ctx = previewCanvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(fullCanvas, 0, 0, cssW * dpr, cssH * dpr);
 }
 
 // ── Download ──────────────────────────────────────────────────────────────────
